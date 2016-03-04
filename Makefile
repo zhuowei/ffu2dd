@@ -7,7 +7,7 @@ SRC = main.o
 OBJ = $(patsubst %,%,$(SRC))
 
 %.o: %.c 
-	gcc -c -o $@ $< $(CFLAGS)
+	gcc -c -O2 -o $@ $< $(CFLAGS)
 $(TARGET): $(OBJ)
 	gcc -o $@ $^ $(CFLAGS) $(LDFLAGS)
 

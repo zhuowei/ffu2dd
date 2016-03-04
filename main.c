@@ -172,8 +172,8 @@ int main(int argc, char** argv) {
 	
 	out = fopen(outfile, "wb");	
 	
-	tmp = (char*)malloc(sizeof(char) * CHUNK_SIZE);
-	chunk_loops = store_header.dwBlockSizeInBytes / CHUNK_SIZE;
+	tmp = (char*)malloc(sizeof(char) * store_header.dwBlockSizeInBytes);
+	chunk_loops = 1;//store_header.dwBlockSizeInBytes / CHUNK_SIZE;
 	
 	for(i = 0; i < store_header.dwWriteDescriptorCount; i++) {
 		memcpy(&block_data_entry.dwLocationCount, offset, sizeof(uint32_t)); 
@@ -198,11 +198,13 @@ int main(int argc, char** argv) {
 			if(disk_location.dwDiskAccessMethod != 0) {
 				printf("%d=%d\n", disk_location.dwDiskAccessMethod, disk_location.dwBlockIndex);
 			}
-				
-			fseek(out, (uint64_t)store_header.dwBlockSizeInBytes * (uint64_t)disk_location.dwBlockIndex, SEEK_SET);	
+			int seek = disk_location.dwDiskAccessMethod == 2? SEEK_END: SEEK_SET;
+			uint64_t seekoff = (uint64_t)store_header.dwBlockSizeInBytes * (uint64_t)disk_location.dwBlockIndex;
+			if (seek == SEEK_END) seekoff -= ((uint64_t)store_header.dwBlockSizeInBytes);
+			fseek(out, seekoff, seek);
 			for(k = 0; k < chunk_loops; k++) { 
-				fread(tmp, sizeof(char), CHUNK_SIZE, fp);
-				fwrite(tmp, sizeof(char), CHUNK_SIZE, out);
+				fread(tmp, sizeof(char), store_header.dwBlockSizeInBytes, fp);
+				fwrite(tmp, sizeof(char), store_header.dwBlockSizeInBytes, out);
 			}
 		}	
 	}
